@@ -11,7 +11,6 @@ from crud import (
     create_user,
     get_user_by_id,
     get_users,
-    get_all_user_tasks,
 )
 from models import User
 from schemas import TaskCreate, TaskRead, TaskUpdate, UserRead, UserCreate
@@ -42,11 +41,11 @@ async def read_users(db: AsyncSession = Depends(get_db)):
 
 @router.get("/users/{user_id}/tasks", response_model=List[TaskRead])
 async def get_tasks_by_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    user = await get_all_user_tasks(user_id, db)
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    if user is None:
-        raise HTTPException(status_code=404, detail="Task with this user_id not found")
-    return user
+    return user.tasks  # relationship работает!
 
 
 # TASKS

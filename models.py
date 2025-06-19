@@ -11,7 +11,7 @@ class User(Base):
     name = Column(String)
     email = Column(String, unique=True)
 
-    tasks = relationship("Task", back_populates="user")
+    tasks = relationship("Task", back_populates="user", lazy="selectin")
 
 
 class Task(Base):

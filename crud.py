@@ -1,13 +1,44 @@
+from tkinter.font import names
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from models import Task
-from schemas import TaskCreate, TaskUpdate
+from models import Task, User
+from schemas import TaskCreate, TaskUpdate, UserCreate
 from typing import List
 
 
+# USERS
+async def create_user(db: AsyncSession, user: UserCreate) -> User:
+    db_user = User(name=user.name, email=user.email)
+    db.add(db_user)
+    await db.commit()
+    await db.refresh(db_user)
+    return db_user
+
+
+async def get_user_by_id(user_id: int, db: AsyncSession) -> User | None:
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
+
+
+async def get_users(db: AsyncSession) -> List[User]:
+    result = await db.execute(select(User))
+    return result.scalars().all()
+
+
+async def get_all_user_tasks(user_id: int, db: AsyncSession) -> Task | None:
+    result = await db.execute(select(Task).where(Task.user_id == user_id))
+    return result.scalars().all()
+
+
+# TASKS
 async def create_task(db: AsyncSession, task: TaskCreate) -> Task:
-    db_task = Task(title=task.title, text=task.text)
+    db_task = Task(
+        title=task.title,
+        text=task.text,
+        user_id=task.user_id,
+    )
     db.add(db_task)
     await db.commit()
     await db.refresh(db_task)

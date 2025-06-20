@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 
@@ -19,6 +20,8 @@ class TaskUpdate(BaseModel):
 class TaskRead(TaskBase):
     id: int
     user_id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
 
     class Config:
         orm_mode = True

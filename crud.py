@@ -1,5 +1,3 @@
-from tkinter.font import names
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -7,9 +5,19 @@ from models import Task, User
 from schemas import TaskCreate, TaskUpdate, UserCreate
 from typing import List
 
+from fastapi import HTTPException, status
+
 
 # USERS
 async def create_user(db: AsyncSession, user: UserCreate) -> User:
+    # Проверка существования email
+    existing_user = await db.execute(select(User).where(User.email == user.email))
+    if existing_user.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+        )
+
+    # Создание пользователя
     db_user = User(name=user.name, email=user.email)
     db.add(db_user)
     await db.commit()
@@ -27,9 +35,10 @@ async def get_users(db: AsyncSession) -> List[User]:
     return result.scalars().all()
 
 
-async def get_all_user_tasks(user_id: int, db: AsyncSession) -> Task | None:
-    result = await db.execute(select(Task).where(Task.user_id == user_id))
-    return result.scalars().all()
+"Функция используется только если не ставим lazy=selectin"
+# async def get_all_user_tasks(user_id: int, db: AsyncSession) -> Task | None:
+#    result = await db.execute(select(Task).where(Task.user_id == user_id))
+#    return result.scalars().all()
 
 
 # TASKS
